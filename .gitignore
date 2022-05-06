@@ -1,0 +1,5 @@
+node_modules
+.data
+.env
+settings-staging.json
+settings-production.json
