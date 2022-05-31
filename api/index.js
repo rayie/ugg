@@ -18,6 +18,7 @@ const tpl = (pkg) => { return `
       html { 
         scroll-behavior: smooth;
       }
+      pre { padding: 0 }
       li a {
         text-decoration: none;
       }
@@ -182,8 +183,18 @@ const get_chords = async (url) => {
 
 
 const controls_html=`
-<button id='up' type="button" class="btn btn-primary navbar-toggler"">Half Step Up</button>
-<button id='down' type="button" class="btn btn-primary navbar-toggler"">Half Step Down</button>
+
+<div class='btn-group'>
+  <button id='up' type="button" class="btn btn-secondary"">Half Step Up</button>
+  <button id='down' type="button" class="btn btn-secondary"">Half Step Down</button>
+</div>
+
+<div class='btn-group'>
+  <button id='scroll' type="button" class="btn btn-primary">Scroll:OFF</button>
+  <button id='speedDown' type="button" class="btn btn-primary">Slower</button>
+  <button id='scrollSpeed' type="button" class="btn btn-primary"></button>
+  <button id='speedUp' type="button" class="btn btn-primary">Faster</button>
+</div>
 `;
 
 export default async (app) => {

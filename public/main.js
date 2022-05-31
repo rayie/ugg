@@ -16,5 +16,3 @@ jQuery( document ).ready(function() {
   onland()
 });
 
-
-
