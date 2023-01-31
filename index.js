@@ -8,7 +8,7 @@ const mongodb = require("mongodb")
 const MC = mongodb.MongoClient;
 const Promise = require("bluebird")
 const mongouri = process.env.MONGOURI;
-console.log(mongouri)
+//console.log('mongouri: ' + mongouri)
 const db = {
   client: {
 

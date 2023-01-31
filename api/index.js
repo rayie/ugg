@@ -76,7 +76,9 @@ const tpl = (pkg) => { return `
     <div class='container'>
       <nav class="navbar fixed-top navbar-light bg-light">
 	      <div class="container-fluid">
-	        <a class="navbar-brand" href="/toc_by_artist">List</a>
+	        <a class="navbar-brand" href="/toc_by_artist">By Artists</a>
+	        <a class="navbar-brand" href="/toc">By Alpha</a>
+	        <a class="navbar-brand" href="/clearbad">Clear Errors</a>
 	        ${pkg.controls || ''}
 	        <form class="d-flex">
             <input id="url_from_ug" class="form-control me-2" type="text" placeholder="Paste URL from UG" aria-label="URL from UG">
@@ -101,7 +103,7 @@ const tpl = (pkg) => { return `
 //get all chords in listing
 const get_list = async (url) => {
   const page = await browser.newPage();
-  await page.goto(url, { timeout: 1000*60, waitUntil:"networkidle0"} );
+  await page.goto(url, { timeout: 1000*30, waitUntil:"networkidle0"} );
   await page.addScriptTag({url: 'https://code.jquery.com/jquery-3.2.1.min.js'})
   const songs = await page.evaluate(() => {
     let arr = []
@@ -160,7 +162,7 @@ const clean_title = t => {
 
 const get_chords = async (url) => {
   const page = await browser.newPage();
-  await page.goto(url, {timeout:1000*60} );
+  await page.goto(url, {timeout:1000*30} );
   await page.addScriptTag({url: 'https://code.jquery.com/jquery-3.2.1.min.js'})
   let title  = "Unknown";
   title = await page.evaluate(() => {
@@ -333,6 +335,12 @@ export default async (app) => {
       pkg = await get_chords(url)
     }catch(err){
       console.error(err)
+      res.send(tpl({
+        main: pkg.html, 
+        controls: controls_html,
+        script:`<script src="/tune.js"></script>`, title: clean_title(pkg.title) 
+      }));
+      return;
     }
 
     try {
@@ -389,7 +397,6 @@ export default async (app) => {
     return
   })
 
-
   app.use("/toc", async (req, res) => {
     let ss = await app.colls.chords.find({}).sort({title:1}).toArray()
     let list = ss.map(s=>{
@@ -400,6 +407,35 @@ export default async (app) => {
         </li>`;
     }).join("\n")
     let inner_html = `<ul class='toc'>${list}</ul>`;
+    res.send(tpl({main:inner_html, title:"TOC", script:""})) 
+    return
+  })
+
+  app.use("/clearbad", async (req, res) => {
+    let crit = {
+      $or: [
+        {title:"Unknown"},
+        {title:`Oops! We couldn't find that page.`}
+      ]
+    }
+    let ss = await app.colls.chords.find(crit).sort({title:1}).toArray()
+    if (ss.length){
+      let list = ss.map(s=>{
+        return `<li>
+            <a href='/get_chords?url=${s._id}' target='ug_${s.title}'>${clean_title(s.title)}<a>
+            &nbsp;
+            <a href='${s._id}' target='${s.title}'>Original<a>
+          </li>`;
+      }).join("\n")
+      let inner_html = `<ul class='toc'>${list}</ul><br/>Removed bad files!`;
+      res.send(tpl({main:inner_html, title:"TOC", script:""})) 
+
+
+      await app.colls.chords.deleteMany(crit);
+      return;
+    }
+
+    let inner_html = `<br/>No bad files!`;
     res.send(tpl({main:inner_html, title:"TOC", script:""})) 
     return
   })
